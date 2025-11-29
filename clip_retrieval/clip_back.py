@@ -843,7 +843,7 @@ def load_mclip(clip_model):
     if clip_model == "ViT-L/14":
         model_name = "M-CLIP/XLM-Roberta-Large-Vit-L-14"
     elif clip_model == "ViT-B/32":
-        model_name = "M-CLIP/XLM-Roberta-Large-Vit-B-32"
+        model_name = "open_clip:ViT-B-32/laion2b_s34b_b79k"
     else:
         raise ValueError(f"Multi-lingual version of {clip_model} not available.")
 
