@@ -1,6 +1,5 @@
 install: ## [Local development] Upgrade pip, install requirements, install package.
 	python3 -m pip install -U pip
-	python3 -m pip install -e .
 	curl -LsSf https://astral.sh/uv/install.sh | sh
 	uv sync
 
