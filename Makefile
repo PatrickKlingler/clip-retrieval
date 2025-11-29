@@ -1,6 +1,8 @@
 install: ## [Local development] Upgrade pip, install requirements, install package.
 	python3 -m pip install -U pip
 	python3 -m pip install -e .
+	curl -LsSf https://astral.sh/uv/install.sh | sh
+	uv sync
 
 install-dev: ## [Local development] Install test requirements
 	python -m pip install -r requirements-test.txt
@@ -14,7 +16,7 @@ black: ## [Local development] Auto-format python code using black
 	python -m black -l 120 .
 
 build:
-	python3 clip_retrieval/clip_back.py
+	uv run -m clip_retrieval.clip_back
 
 build-pex:
 	python3.12 -m venv .pexing
