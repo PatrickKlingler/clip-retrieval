@@ -23,7 +23,7 @@ import io
 import numpy as np
 from functools import lru_cache
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
-import pyarrow as pa
+# import pyarrow as pa
 import fsspec
 
 import h5py
@@ -622,8 +622,9 @@ def load_metadata_provider(
     parquet_folder = indice_folder + "/metadata"
     ivf_old_to_new_mapping = None
     if use_arrow:
-        mmap_folder = parquet_folder
-        metadata_provider = ArrowMetadataProvider(mmap_folder)
+        pass
+        # mmap_folder = parquet_folder
+        # metadata_provider = ArrowMetadataProvider(mmap_folder)
     elif enable_hdf5:
         hdf5_path = None
         if reorder_metadata_by_ivf_index:
@@ -864,18 +865,24 @@ def load_clip_index(clip_options):
     import torch  # pylint: disable=import-outside-toplevel
     from all_clip import load_clip  # pylint: disable=import-outside-toplevel
 
+    print("loading clip model...")
     device = "cuda" if torch.cuda.is_available() else "cpu"
+    device = "mps" if torch.backends.mps.is_available() else "cpu"
     model, preprocess, tokenizer = load_clip(clip_options.clip_model, use_jit=clip_options.use_jit, device=device)
+    print("loaded clip, loading mclip")
 
     if clip_options.enable_mclip_option:
         model_txt_mclip = load_mclip(clip_options.clip_model)
     else:
         model_txt_mclip = None
+    print("loaded mclip, loading safety model")
 
     safety_model = load_safety_model(clip_options.clip_model) if clip_options.provide_safety_model else None
+    print("loaded safety model, loading violence detector")
     violence_detector = (
         load_violence_detector(clip_options.clip_model) if clip_options.provide_violence_detector else None
     )
+    print("loaded violence_detector, loading aesthetic_embeddings")
     aesthetic_embeddings = (
         get_aesthetic_embedding(clip_options.clip_model) if clip_options.provide_aesthetic_embeddings else None
     )
@@ -930,38 +937,41 @@ def load_clip_indices(
 ) -> Dict[str, ClipResource]:
     """This load clips indices from disk"""
     LOGGER.info("loading clip...")
-
+    import os
+    print(Path(__file__).parent)
     with open(indices_paths, "r", encoding="utf-8") as f:
         indices = json.load(f)
 
     clip_resources = {}
 
     for name, indice_value in indices.items():
+        print("loading index:", indice_value)
         # if indice_folder is a string
         if isinstance(indice_value, str):
+            print("loading with options:", indice_value)
             clip_options = dict_to_clip_options({"indice_folder": indice_value}, clip_options)
         elif isinstance(indice_value, dict):
             clip_options = dict_to_clip_options(indice_value, clip_options)
         else:
             raise ValueError("Unknown type for indice_folder")
         clip_resources[name] = load_clip_index(clip_options)
-
+    print("returning loaded indices")
     return clip_resources
 
 
 # reorder_metadata_by_ivf_index allows faster data retrieval of knn results by re-ordering the metadata by the ivf clusters
 def clip_back(
-    indices_paths="indices_paths.json",
+    indices_paths="/Users/patrickklingler/Documents/clip_front/clip-retrieval/clip_retrieval/indices_paths.json",
     port=1234,
     enable_hdf5=False,
     enable_faiss_memory_mapping=False,
-    columns_to_return=None,
+    columns_to_return=["url", "caption"],
     reorder_metadata_by_ivf_index=False,
     default_backend=None,
     url_column="url",
-    enable_mclip_option=True,
-    clip_model="ViT-B/32",
-    use_jit=True,
+    enable_mclip_option=False,
+    clip_model="open_clip:ViT-B-32/laion2b_s34b_b79k",
+    use_jit=False,
     use_arrow=False,
     provide_safety_model=False,
     provide_violence_detector=False,
@@ -971,23 +981,22 @@ def clip_back(
     print("starting boot of clip back")
     if columns_to_return is None:
         columns_to_return = ["url", "image_path", "caption", "NSFW"]
-    clip_resources = load_clip_indices(
-        indices_paths=indices_paths,
-        clip_options=ClipOptions(
-            indice_folder="",
-            clip_model=clip_model,
-            enable_hdf5=enable_hdf5,
-            enable_faiss_memory_mapping=enable_faiss_memory_mapping,
-            columns_to_return=columns_to_return,
-            reorder_metadata_by_ivf_index=reorder_metadata_by_ivf_index,
-            enable_mclip_option=enable_mclip_option,
-            use_jit=use_jit,
-            use_arrow=use_arrow,
-            provide_safety_model=provide_safety_model,
-            provide_violence_detector=provide_violence_detector,
-            provide_aesthetic_embeddings=provide_aesthetic_embeddings,
-        ),
+    indice_folder = "/Users/patrickklingler/Documents/clip_front/clip-retrieval/clip_retrieval/improved_aesthetics_6.5plus_clip_retrieval"
+    clip_options = ClipOptions(
+        indice_folder=indice_folder,
+        clip_model="open_clip:ViT-B-32/laion2b_s34b_b79k",
+        enable_hdf5=False,
+        enable_faiss_memory_mapping=False,
+        columns_to_return=["url", "caption"],
+        reorder_metadata_by_ivf_index=False,
+        enable_mclip_option=False,
+        use_jit=False,
+        use_arrow=False,
+        provide_safety_model=False,
+        provide_violence_detector=False,
+        provide_aesthetic_embeddings=False,
     )
+    resources = load_clip_indices("/Users/patrickklingler/Documents/clip_front/clip-retrieval/clip_retrieval/indices_paths.json", clip_options)
     print("indices loaded")
 
     app = Flask(__name__)

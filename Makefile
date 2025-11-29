@@ -1,6 +1,6 @@
 install: ## [Local development] Upgrade pip, install requirements, install package.
-	python -m pip install -U pip
-	python -m pip install -e .
+	python3 -m pip install -U pip
+	python3 -m pip install -e .
 
 install-dev: ## [Local development] Install test requirements
 	python -m pip install -r requirements-test.txt
@@ -14,7 +14,7 @@ black: ## [Local development] Auto-format python code using black
 	python -m black -l 120 .
 
 build:
-	python clip_inference/clip_back.py
+	python3 clip_retrieval/clip_back.py
 
 build-pex:
 	python3.12 -m venv .pexing
