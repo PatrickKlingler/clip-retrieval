@@ -867,7 +867,6 @@ def load_clip_index(clip_options):
 
     print("loading clip model...")
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    device = "mps" if torch.backends.mps.is_available() else "cpu"
     model, preprocess, tokenizer = load_clip(clip_options.clip_model, use_jit=clip_options.use_jit, device=device)
     print("loaded clip, loading mclip")
 
@@ -981,7 +980,7 @@ def clip_back(
     print("starting boot of clip back")
     if columns_to_return is None:
         columns_to_return = ["url", "image_path", "caption", "NSFW"]
-    indice_folder = "/Users/patrickklingler/Documents/clip_front/clip-retrieval/clip_retrieval/improved_aesthetics_6.5plus_clip_retrieval"
+    indice_folder = "./improved_aesthetics_6.5plus_clip_retrieval"
     clip_options = ClipOptions(
         indice_folder=indice_folder,
         clip_model="open_clip:ViT-B-32/laion2b_s34b_b79k",
@@ -996,7 +995,7 @@ def clip_back(
         provide_violence_detector=False,
         provide_aesthetic_embeddings=False,
     )
-    resources = load_clip_indices("/Users/patrickklingler/Documents/clip_front/clip-retrieval/clip_retrieval/indices_paths.json", clip_options)
+    resources = load_clip_indices("./indices_paths.json", clip_options)
     print("indices loaded")
 
     app = Flask(__name__)
