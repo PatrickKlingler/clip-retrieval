@@ -13,6 +13,9 @@ lint: ## [Local development] Run mypy, pylint and black
 black: ## [Local development] Auto-format python code using black
 	python -m black -l 120 .
 
+build:
+	python clip_inference/clip_back.py
+
 build-pex:
 	python3.12 -m venv .pexing
 	. .pexing/bin/activate && python3.12 -m pip install -U pip && python3.12 -m pip install pex
